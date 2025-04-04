@@ -1,5 +1,7 @@
 (function createCustomConsole() {
-  // --- Styles
+  const old = document.getElementById('customConsole');
+  if (old) old.remove();
+
   const style = document.createElement('style');
   style.textContent = `
     #customConsole {
@@ -48,18 +50,12 @@
       padding: 1rem;
       overflow-y: auto;
     }
-    #customConsoleLog::-webkit-scrollbar,
-    #commandSuggestions::-webkit-scrollbar {
+    #customConsoleLog::-webkit-scrollbar {
       width: 8px;
     }
-    #customConsoleLog::-webkit-scrollbar-thumb,
-    #commandSuggestions::-webkit-scrollbar-thumb {
+    #customConsoleLog::-webkit-scrollbar-thumb {
       background-color: rgba(255, 255, 255, 0.1);
       border-radius: 4px;
-    }
-    #customConsoleLog::-webkit-scrollbar-track,
-    #commandSuggestions::-webkit-scrollbar-track {
-      background: transparent;
     }
     #customConsoleLog p {
       margin: 0;
@@ -107,9 +103,9 @@
   `;
   document.head.appendChild(style);
 
-  // --- Elements
   const container = document.createElement('div');
   container.id = 'customConsole';
+  container.classList.add('hidden');
 
   const header = document.createElement('div');
   header.id = 'customConsoleHeader';
@@ -117,9 +113,7 @@
   const toggleBtn = document.createElement('button');
   toggleBtn.id = 'fullscreenToggle';
   toggleBtn.textContent = 'Fullscreen';
-
   header.appendChild(toggleBtn);
-  container.appendChild(header);
 
   const logDiv = document.createElement('div');
   logDiv.id = 'customConsoleLog';
@@ -129,7 +123,7 @@
 
   const input = document.createElement('input');
   input.type = 'text';
-  input.placeholder = 'Type JavaScript or /clear...';
+  input.placeholder = 'Type JavaScript or /command...';
 
   const suggestionBox = document.createElement('div');
   suggestionBox.id = 'commandSuggestions';
@@ -137,11 +131,11 @@
 
   inputContainer.appendChild(input);
   inputContainer.appendChild(suggestionBox);
+  container.appendChild(header);
   container.appendChild(logDiv);
   container.appendChild(inputContainer);
   document.body.appendChild(container);
 
-  // --- Logging
   function log(message, isError = false) {
     const line = document.createElement('p');
     line.textContent = message;
@@ -150,17 +144,126 @@
     logDiv.scrollTop = logDiv.scrollHeight;
   }
 
-  // --- Commands
   const commands = {
-    clear: () => {
-      logDiv.innerHTML = "";
+    clear: () => (logDiv.innerHTML = ""),
+    "any-blook": () => {
+      try {
+        const snode = Object.values(window.document.querySelector('#app>div>div'))[1].children[0]._owner.stateNode;
+        function setBlooks(blks) {
+          snode.setState({ unlocks: Object.keys(blks) });
+          alert("All Blooks ran successfully!");
+          console.log("Blooks Found!");
+        }
+        if (!window.location.href.includes("/lobby")) {
+          alert("You must be on the lobby for this cheat to work!");
+          console.error("you must be on the lobby page!");
+        } else {
+          if (window.Object.keys.toString().includes("native code")) {
+            const t = window.Object.keys;
+            window.Object.keys = function (a) {
+              if (a["Breakfast Combo"]) {
+                window.Object.keys = t;
+                setBlooks(a);
+              }
+              return t(a);
+            };
+          }
+        }
+        snode.render();
+      } catch (err) {
+        log("Error running /any-blook", true);
+        console.error(err);
+      }
+    },
+    "set-blook-spam": (speed = 300) => {
+      const el = document.querySelector("._blooksHolder_1bg6w_141");
+      if (!el) return log("❌ Cannot find ._blooksHolder_1bg6w_141", true);
+      if (window._blookClickInterval) clearInterval(window._blookClickInterval);
+      const ms = parseInt(speed);
+      if (isNaN(ms) || ms < 10) return log("❌ Invalid speed. Use a number >= 10.", true);
+      window._blookClickInterval = setInterval(() => {
+        const children = [...el.children];
+        if (!children.length) return;
+        const rand = Math.floor(Math.random() * children.length);
+        children[rand].click();
+      }, ms);
+      log(`⚡ Blook spam started (every ${ms}ms).`);
+    },
+    "stop-blook-spam": () => {
+      if (window._blookClickInterval) {
+        clearInterval(window._blookClickInterval);
+        delete window._blookClickInterval;
+        log("⏹️ Blook spam stopped.");
+      } else {
+        log("⚠️ Blook spam is not running.");
+      }
+    },
+    "auto-answer": () => {
+      (() => {
+        const cheat = (async () => {
+          const { stateNode: { state: { question, stage, feedback }, props: { client: { question: pquestion } } } } = Object.values((function react(r = document.querySelector("body>div")) { return Object.values(r)[1]?.children?.[0]?._owner.stateNode ? r : react(r.querySelector(":scope>div")) })())[1].children[0]._owner;
+          try {
+            if (question.qType != "typing") if (stage !== "feedback" && !feedback) [...document.querySelectorAll(`[class*="answerContainer"]`)][(question || pquestion).answers.map((x, i) => (question || pquestion).correctAnswers.includes(x) ? i : null).filter(x => x != null)[0]]?.click?.();
+            else document.querySelector('[class*="feedback"]')?.firstChild?.click?.();
+            else Object.values(document.querySelector("[class*='typingAnswerWrapper']"))[1].children._owner.stateNode.sendAnswer(question.answers[0])
+          } catch { }
+        });
+        let img = new Image;
+        img.src = "https://raw.githubusercontent.com/05Konz/Blooket-Cheats/main/autoupdate/timestamps/global/autoAnswer.png?" + Date.now();
+        img.crossOrigin = "Anonymous";
+        img.onload = function() {
+          const c = document.createElement("canvas");
+          const ctx = c.getContext("2d");
+          ctx.drawImage(img, 0, 0, this.width, this.height);
+          let { data } = ctx.getImageData(0, 0, this.width, this.height), decode = "", last;
+          for (let i = 0; i < data.length; i += 4) {
+            let char = String.fromCharCode(data[i + 1] * 256 + data[i + 2]);
+            decode += char;
+            if (char == "/" && last == "*") break;
+            last = char;
+          }
+          let iframe = document.querySelector("iframe");
+          const [_, time, error] = decode.match(/LastUpdated: (.+?); ErrorMessage: "(.+?)"/);
+          if (parseInt(time) <= 1693429947379 || iframe.contentWindow.confirm(error)) cheat();
+        }
+        img.onerror = img.onabort = () => (img.src = null, cheat());
+      })();
+    },
+    "answer-highlight": () => {
+      (() => {
+        const cheat = (async () => {
+          const { stateNode: { state, props } } = Object.values((function react(r = document.querySelector("body>div")) { return Object.values(r)[1]?.children?.[0]?._owner.stateNode ? r : react(r.querySelector(":scope>div")) })())[1].children[0]._owner;
+          [...document.querySelectorAll(`[class*="answerContainer"]`)].forEach((answer, i) => {
+            if ((state.question || props.client.question).correctAnswers.includes((state.question || props.client.question).answers[i])) answer.style.backgroundColor = "rgb(0, 207, 119)";
+            else answer.style.backgroundColor = "rgb(189, 15, 38)";
+          });
+        });
+        let img = new Image;
+        img.src = "https://raw.githubusercontent.com/05Konz/Blooket-Cheats/main/autoupdate/timestamps/global/highlightAnswers.png?" + Date.now();
+        img.crossOrigin = "Anonymous";
+        img.onload = function() {
+          const c = document.createElement("canvas");
+          const ctx = c.getContext("2d");
+          ctx.drawImage(img, 0, 0, this.width, this.height);
+          let { data } = ctx.getImageData(0, 0, this.width, this.height), decode = "", last;
+          for (let i = 0; i < data.length; i += 4) {
+            let char = String.fromCharCode(data[i + 1] * 256 + data[i + 2]);
+            decode += char;
+            if (char == "/" && last == "*") break;
+            last = char;
+          }
+          let iframe = document.querySelector("iframe");
+          const [_, time, error] = decode.match(/LastUpdated: (.+?); ErrorMessage: "(.+?)"/);
+          if (parseInt(time) <= 1693429947392 || iframe.contentWindow.confirm(error)) cheat();
+        }
+        img.onerror = img.onabort = () => (img.src = null, cheat());
+      })();
     }
   };
 
   const commandList = Object.keys(commands);
   let activeSuggestionIndex = -1;
 
-  // --- Input handler
   input.addEventListener('keydown', (e) => {
     const code = input.value.trim();
 
@@ -186,7 +289,6 @@
     if (e.key === 'Enter') {
       log(`> ${code}`);
       hideSuggestions();
-
       if (code.startsWith('/')) {
         const [cmd, ...args] = code.slice(1).split(' ');
         if (commands[cmd]) {
@@ -206,7 +308,6 @@
           log(err.message, true);
         }
       }
-
       input.value = '';
       activeSuggestionIndex = -1;
     }
@@ -226,11 +327,7 @@
   function showSuggestions(matches) {
     suggestionBox.innerHTML = '';
     activeSuggestionIndex = -1;
-    if (matches.length === 0) {
-      hideSuggestions();
-      return;
-    }
-
+    if (!matches.length) return hideSuggestions();
     matches.forEach(cmd => {
       const item = document.createElement('div');
       item.textContent = cmd;
@@ -241,7 +338,6 @@
       });
       suggestionBox.appendChild(item);
     });
-
     suggestionBox.style.display = 'block';
   }
 
@@ -256,15 +352,13 @@
     });
   }
 
-  // --- Hook console.log
   console._log = console.log;
   console.log = (...args) => {
     args.forEach(arg => log(arg));
     console._log.apply(console, args);
   };
 
-  // --- Right Ctrl toggles console
-  let isVisible = true;
+  let isVisible = false;
   document.addEventListener('keydown', (e) => {
     if (e.code === 'ControlRight') {
       isVisible = !isVisible;
@@ -272,7 +366,6 @@
     }
   });
 
-  // --- Fullscreen toggle
   let isFull = false;
   toggleBtn.addEventListener('click', () => {
     isFull = !isFull;
