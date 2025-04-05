@@ -124,7 +124,7 @@
 
   const input = document.createElement('input');
   input.type = 'text';
-  input.placeholder = 'Type JavaScript or /command...';
+  input.placeholder = '/command...';
 
   const suggestionBox = document.createElement('div');
   suggestionBox.id = 'commandSuggestions';
