@@ -1,7 +1,9 @@
 (function createCustomConsole() {
+  // Remove older versions
   const old = document.getElementById('customConsole');
   if (old) old.remove();
 
+  // --- Styles
   const style = document.createElement('style');
   style.textContent = `
     #customConsole {
@@ -22,9 +24,6 @@
     #customConsole.fullscreen {
       top: 0;
       height: 100vh;
-    }
-    #customConsole.hidden {
-      transform: translateY(100%);
     }
     #customConsoleHeader {
       display: flex;
@@ -50,10 +49,12 @@
       padding: 1rem;
       overflow-y: auto;
     }
-    #customConsoleLog::-webkit-scrollbar {
+    #customConsoleLog::-webkit-scrollbar,
+    #commandSuggestions::-webkit-scrollbar {
       width: 8px;
     }
-    #customConsoleLog::-webkit-scrollbar-thumb {
+    #customConsoleLog::-webkit-scrollbar-thumb,
+    #commandSuggestions::-webkit-scrollbar-thumb {
       background-color: rgba(255, 255, 255, 0.1);
       border-radius: 4px;
     }
@@ -103,9 +104,9 @@
   `;
   document.head.appendChild(style);
 
+  // Elements
   const container = document.createElement('div');
   container.id = 'customConsole';
-  container.classList.add('hidden');
 
   const header = document.createElement('div');
   header.id = 'customConsoleHeader';
@@ -136,6 +137,7 @@
   container.appendChild(inputContainer);
   document.body.appendChild(container);
 
+  // Logging
   function log(message, isError = false) {
     const line = document.createElement('p');
     line.textContent = message;
@@ -144,6 +146,7 @@
     logDiv.scrollTop = logDiv.scrollHeight;
   }
 
+  // Commands
   const commands = {
     clear: () => (logDiv.innerHTML = ""),
     "any-blook": () => {
@@ -175,12 +178,12 @@
         console.error(err);
       }
     },
-    "set-blook-spam": (speed = 300) => {
+    "set-blook-spam": (speed = 1) => {
       const el = document.querySelector("._blooksHolder_1bg6w_141");
       if (!el) return log("❌ Cannot find ._blooksHolder_1bg6w_141", true);
       if (window._blookClickInterval) clearInterval(window._blookClickInterval);
       const ms = parseInt(speed);
-      if (isNaN(ms) || ms < 10) return log("❌ Invalid speed. Use a number >= 10.", true);
+      if (isNaN(ms) || ms < 1) return log("❌ Invalid speed. Use a number >= 1.", true); // Speed now starts from 1ms
       window._blookClickInterval = setInterval(() => {
         const children = [...el.children];
         if (!children.length) return;
@@ -264,6 +267,7 @@
   const commandList = Object.keys(commands);
   let activeSuggestionIndex = -1;
 
+  // Input logic
   input.addEventListener('keydown', (e) => {
     const code = input.value.trim();
 
@@ -343,35 +347,31 @@
 
   function hideSuggestions() {
     suggestionBox.style.display = 'none';
-    activeSuggestionIndex = -1;
   }
 
   function updateSuggestionHighlight() {
-    [...suggestionBox.children].forEach((el, i) => {
-      el.classList.toggle('active', i === activeSuggestionIndex);
+    [...suggestionBox.children].forEach((child, index) => {
+      if (index === activeSuggestionIndex) {
+        child.classList.add('active');
+      } else {
+        child.classList.remove('active');
+      }
     });
   }
 
-  console._log = console.log;
-  console.log = (...args) => {
-    args.forEach(arg => log(arg));
-    console._log.apply(console, args);
-  };
-
-  let isVisible = false;
+  // Toggle visibility of the console when Right Ctrl is pressed
   document.addEventListener('keydown', (e) => {
-    if (e.code === 'ControlRight') {
-      isVisible = !isVisible;
-      container.classList.toggle('hidden', !isVisible);
+    if (e.key === 'Control' && e.location === 2) { // Right Control
+      container.style.display = container.style.display === 'none' ? 'flex' : 'none';
     }
   });
 
-  let isFull = false;
+  // Toggle fullscreen
   toggleBtn.addEventListener('click', () => {
-    isFull = !isFull;
-    container.classList.toggle('fullscreen', isFull);
-    toggleBtn.textContent = isFull ? 'Exit Fullscreen' : 'Fullscreen';
+    container.classList.toggle('fullscreen');
+    toggleBtn.textContent = container.classList.contains('fullscreen') ? 'Exit Fullscreen' : 'Fullscreen';
   });
 
-  log('🛠️ Custom console ready. Press Right Ctrl to toggle visibility.');
+  // Show the console open by default
+  log('Welcome to Custom Console!');
 })();
